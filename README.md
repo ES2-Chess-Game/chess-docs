@@ -26,6 +26,7 @@ Para iniciar ou usar a aplicação, consulte os READMEs do frontend e do backend
 - [Requisitos](docs/04-requisitos-e-arquitetura/requisitos.md)
 - [Arquitetura](docs/04-requisitos-e-arquitetura/arquitetura.md)
 - [Modelo de dados](docs/04-requisitos-e-arquitetura/modelo-de-dados.md)
+- [Diagramas UML](docs/04-requisitos-e-arquitetura/diagramas-uml.md)
 - [Motor do xadrez](docs/05-desenvolvimento/motor-do-xadrez.md)
 - [Inteligência artificial](docs/05-desenvolvimento/inteligencia-artificial.md)
 - [Estratégia de testes](docs/06-qualidade/estrategia-de-testes.md)

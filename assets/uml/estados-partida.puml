@@ -1,0 +1,31 @@
+@startuml estados-partida
+skinparam dpi 200
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam nodesep 90
+skinparam ranksep 90
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}
+skinparam ArrowFontSize 11
+hide empty description
+
+[*] --> Ativa : criar
+
+state "Ativa" as Ativa {
+  state "Em andamento" as EA
+  state "Xeque" as X
+  [*] -> EA
+  EA -right-> X : lance [xeque]\n
+  X -left-> EA : lance [sem xeque]
+}
+
+state "Xeque-mate" as XM
+state "Empate" as EMP
+
+Ativa --> XM : lance [xeque sem saída]
+Ativa --> EMP : lance [afogamento]
+XM --> [*]
+EMP --> [*]
+@enduml

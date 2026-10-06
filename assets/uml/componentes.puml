@@ -1,0 +1,38 @@
+@startuml componentes
+skinparam dpi 200
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam nodesep 70
+skinparam ranksep 55
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}
+skinparam interface {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}
+
+component "chess-frontend" <<subsystem>> {
+  component "Tabuleiro" as UI
+}
+
+component "chess-backend" <<subsystem>> {
+  () "/api/partidas" as API
+  component "GameController" as CTRL
+  component "GameService" as SVC
+  component "EndGameEvaluator" as END
+  component "MinimaxAI" as IA
+  component "Regras do xadrez" as REG
+}
+
+UI -( API
+API - CTRL
+CTRL ..> SVC
+SVC ..> END
+SVC ..> REG
+SVC ..> IA
+END .> REG
+REG <. IA
+@enduml

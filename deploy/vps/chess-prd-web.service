@@ -1,0 +1,16 @@
+[Unit]
+Description=Produção do xadrez: Interface web do jogo de xadrez
+Wants=chess-prd-backend.service
+After=chess-prd-backend.service
+
+[Service]
+WorkingDirectory=%h/chess-deploy/prod
+ExecStart=/usr/sbin/nginx -e stderr -p %h/chess-deploy/prod/ -c nginx.conf -g "daemon off;"
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

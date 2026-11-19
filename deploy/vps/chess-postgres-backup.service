@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup do banco PostgreSQL do jogo de xadrez
+Requires=chess-postgres.service
+After=chess-postgres.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash %h/chess-deploy/config/backup-postgres.sh
+NoNewPrivileges=true

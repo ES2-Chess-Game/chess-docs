@@ -1,0 +1,9 @@
+[Unit]
+Description=Agenda o backup diário do banco do xadrez
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target

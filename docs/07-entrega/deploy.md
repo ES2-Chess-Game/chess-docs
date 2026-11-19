@@ -43,6 +43,27 @@ systemctl --user status chess-backend chess-web
 
 O script aceita commits presentes na história de `hml` dos respectivos repositórios. Ele compila o JAR com o Gradle Wrapper, gera os arquivos estáticos com Vite e ajusta o endereço da API no frontend de homologação para atender na mesma origem. Cada publicação guarda os dois commits em `commits.txt`. Se a API não responder após a troca, o script volta à entrega anterior quando ela existe.
 
-## Limites da homologação
+## PostgreSQL e backup
 
-O acesso remoto usa o túnel SSH. Para servir o jogo publicamente, o administrador da VPS pode adicionar um host HTTPS ao Nginx principal, apontando para `127.0.0.1:18080`. O banco H2 e o estado das partidas ficam em memória e são reiniciados junto com a aplicação. As pendências de produção estão em [deploy do backend](https://github.com/ES2-Chess-Game/chess-backend/issues/37), [deploy do frontend](https://github.com/ES2-Chess-Game/chess-frontend/issues/15) e [Postgres](https://github.com/ES2-Chess-Game/chess-backend/issues/38).
+O PostgreSQL 16 roda na conta `chess` e aceita conexões apenas na interface local, porta `15432`. O backend usa o perfil `prod` da aplicação para conectar a esse banco. Esse perfil seleciona o banco de dados e não altera a branch do deploy. O desenvolvimento local segue com H2.
+
+Para preparar a instância em uma VPS Ubuntu 24.04 x86_64, copie os arquivos de deploy e rode `bash ~/chess-deploy/config/preparar-postgres.sh` na VPS. O script extrai os pacotes oficiais para a pasta do projeto, cria o banco, configura o serviço de usuário e agenda o backup diário. Ele deixa as credenciais em `~/chess-deploy/postgres/backend.env`. Depois de publicar um backend com o perfil PostgreSQL, mova esse arquivo para `~/chess-deploy/backend.env` e reinicie `chess-backend.service`.
+
+Os backups ficam em `~/chess-deploy/postgres/backups`. Para gerar um backup avulso, rode `systemctl --user start chess-postgres-backup.service`. Os pacotes instalados no diretório do projeto precisam ser atualizados pelo responsável pela VPS. Contas e avatares usam PostgreSQL. As partidas desta versão continuam em memória.
+
+## Endereço público
+
+O acesso remoto ainda usa o túnel SSH. O administrador pode adicionar um host HTTPS ao Nginx principal para servir o jogo publicamente. Aponte o DNS do subdomínio para a VPS e use este trecho no bloco HTTPS do subdomínio:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:18080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_set_header Forwarded "";
+}
+```
+
+Acompanhe a publicação pública e a promoção para produção nas issues de [deploy do backend](https://github.com/ES2-Chess-Game/chess-backend/issues/37) e [deploy do frontend](https://github.com/ES2-Chess-Game/chess-frontend/issues/15). A configuração do banco está vinculada à [issue de PostgreSQL](https://github.com/ES2-Chess-Game/chess-backend/issues/38).

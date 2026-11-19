@@ -1,0 +1,13 @@
+[Unit]
+Description=API do jogo de xadrez
+
+[Service]
+WorkingDirectory=%h/chess-deploy
+ExecStart=%h/chess-deploy/runtime/java25/bin/java -Xmx768m -jar %h/chess-deploy/current/chess-backend.jar --server.address=127.0.0.1 --server.port=18081
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

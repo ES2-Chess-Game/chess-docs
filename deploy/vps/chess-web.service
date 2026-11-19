@@ -1,0 +1,16 @@
+[Unit]
+Description=Interface web do jogo de xadrez
+Wants=chess-backend.service
+After=chess-backend.service
+
+[Service]
+WorkingDirectory=%h/chess-deploy
+ExecStart=/usr/sbin/nginx -e stderr -p %h/chess-deploy/ -c nginx.conf -g "daemon off;"
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Banco PostgreSQL do jogo de xadrez
+
+[Service]
+Environment=LD_LIBRARY_PATH=%h/chess-deploy/runtime/postgres16/usr/lib/x86_64-linux-gnu
+ExecStart=%h/chess-deploy/runtime/postgres16/usr/lib/postgresql/16/bin/postgres -D %h/chess-deploy/postgres/data -c listen_addresses=127.0.0.1 -p 15432 -k %h/chess-deploy/postgres/socket
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

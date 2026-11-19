@@ -9,6 +9,14 @@ bin="$runtime/usr/lib/postgresql/16/bin"
 config=$(cd -- "$(dirname -- "$0")" && pwd)
 export LD_LIBRARY_PATH="$runtime/usr/lib/x86_64-linux-gnu"
 
+case ${1:-hml} in
+    hml) db_name=chess; db_user=chess_app; envfile="$database/backend.env"; active_env="$base/backend.env" ;;
+    prd) db_name=chess_prod; db_user=chess_prod_app; envfile="$base/prod/backend.env"; active_env="$envfile" ;;
+    *) echo "Ambiente inválido." >&2; exit 2 ;;
+esac
+install -d -m 700 "$(dirname "$envfile")"
+
+
 install -d -m 700 "$runtime/packages" "$database/socket" "$HOME/.config/systemd/user"
 if [[ ! -x "$bin/pg_dump" || ! -e "$LD_LIBRARY_PATH/libpq.so.5" ]]; then
     (
@@ -38,20 +46,20 @@ for attempt in {1..10}; do
     sleep 1
 done
 
-if [[ ! -e "$database/backend.env" && ! -e "$base/backend.env" ]]; then
+if [[ ! -e "$envfile" && ! -e "$active_env" ]]; then
     password=$(openssl rand -hex 32)
     "$bin/psql" -X -w -v ON_ERROR_STOP=1 -h "$database/socket" -p 15432 -d postgres <<SQL
-SELECT 'CREATE ROLE chess_app LOGIN'
-WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'chess_app')
+SELECT 'CREATE ROLE $db_user LOGIN'
+WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$db_user')
 \gexec
-ALTER ROLE chess_app PASSWORD '$password';
-SELECT 'CREATE DATABASE chess OWNER chess_app'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'chess')
+ALTER ROLE $db_user PASSWORD '$password';
+SELECT 'CREATE DATABASE $db_name OWNER $db_user'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$db_name')
 \gexec
 SQL
-    PGPASSWORD="$password" "$bin/psql" -X -w -h 127.0.0.1 -p 15432 -d chess -U chess_app -c 'SELECT current_database()'
-    printf 'SPRING_PROFILES_ACTIVE=prod\nCHESS_DB_URL=jdbc:postgresql://127.0.0.1:15432/chess\nCHESS_DB_USER=chess_app\nCHESS_DB_PASSWORD=%s\n' \
-        "$password" > "$database/backend.env"
+    PGPASSWORD="$password" "$bin/psql" -X -w -h 127.0.0.1 -p 15432 -d "$db_name" -U "$db_user" -c 'SELECT current_database()'
+    printf 'SPRING_PROFILES_ACTIVE=prod\nCHESS_DB_URL=jdbc:postgresql://127.0.0.1:15432/%s\nCHESS_DB_USER=%s\nCHESS_DB_PASSWORD=%s\n' \
+        "$db_name" "$db_user" "$password" > "$envfile"
 fi
 
 systemctl --user enable --now chess-postgres-backup.timer

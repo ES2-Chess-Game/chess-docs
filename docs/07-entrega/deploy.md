@@ -51,13 +51,21 @@ Para preparar a instância em uma VPS Ubuntu 24.04 x86_64, copie os arquivos de 
 
 Os backups ficam em `~/chess-deploy/postgres/backups`. Para gerar um backup avulso, rode `systemctl --user start chess-postgres-backup.service`. Os pacotes instalados no diretório do projeto precisam ser atualizados pelo responsável pela VPS. Contas e avatares usam PostgreSQL. As partidas desta versão continuam em memória.
 
+## Produção
+
+O deploy de `prd` tem chave, serviços e banco próprios. A aplicação de produção usa a porta local `28080` e o banco `chess_prod`; a homologação usa `18080` e o banco `chess`.
+
+A VPS só inicia o deploy quando os commits mínimos de backend e frontend em [prd-minimo.txt](../../deploy/vps/prd-minimo.txt) estiverem no histórico de `prd` dos dois repositórios. Essa primeira promoção está em [backend #52](https://github.com/ES2-Chess-Game/chess-backend/pull/52) e [frontend #17](https://github.com/ES2-Chess-Game/chess-frontend/pull/17). Depois dos merges, o GitHub Actions usa o ambiente `producao` e chama `deploy-prd` após o build.
+
+Para preparar o banco da produção, rode `bash ~/chess-deploy/config/preparar-postgres.sh prd` na VPS. O timer diário gera um arquivo de backup para cada banco. A produção começa com um banco próprio e vazio; o backend cadastra os avatares no primeiro boot.
+
 ## Endereço público
 
-O acesso remoto ainda usa o túnel SSH. O administrador pode adicionar um host HTTPS ao Nginx principal para servir o jogo publicamente. Aponte o DNS do subdomínio para a VPS e use este trecho no bloco HTTPS do subdomínio:
+O acesso remoto ainda usa o túnel SSH. O administrador pode adicionar um host HTTPS ao Nginx principal para servir o jogo publicamente. Aponte o DNS do subdomínio para a VPS e use este trecho no bloco HTTPS depois do deploy de produção. Para publicar a homologação em um subdomínio próprio, use a porta `18080`:
 
 ```nginx
 location / {
-    proxy_pass http://127.0.0.1:18080;
+    proxy_pass http://127.0.0.1:28080;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;

@@ -1,6 +1,6 @@
 # Deploy de homologação
 
-A homologação na VPS usa os commits `99cb4cb` do backend e `ad4fb93` do frontend. O backend Spring Boot roda com Java 25. O Nginx da conta `chess` entrega o frontend e encaminha `/api/` para o backend pela interface local. Os dois serviços são gerenciados pelo systemd do usuário.
+A primeira publicação de homologação na VPS usou os commits `99cb4cb` do backend e `ad4fb93` do frontend. O backend Spring Boot roda com Java 25. O Nginx da conta `chess` entrega o frontend e encaminha `/api/` para o backend pela interface local. Os dois serviços são gerenciados pelo systemd do usuário.
 
 ## Acessar o jogo
 
@@ -14,7 +14,13 @@ ssh -N -o ExitOnForwardFailure=yes \
 
 Abra [http://127.0.0.1:18080](http://127.0.0.1:18080). Se a porta local estiver em uso, troque o primeiro `18080` do argumento `-L` e use a porta escolhida no navegador.
 
-## Atualizar a homologação
+## Atualização pelo GitHub Actions
+
+O CI de cada repositório de código chama o deploy depois do build em `hml`. A VPS lê os commits atuais dos dois repositórios e serializa as publicações. Quando os dois commits já estão ativos e a API está respondendo, a execução termina sem reiniciar os serviços.
+
+O ambiente `homologacao` de cada repositório aceita a branch `hml` e guarda o segredo `VPS_SSH_KEY` e a variável `VPS_KNOWN_HOSTS`. Na VPS, a entrada correspondente em `~/.ssh/authorized_keys` usa `restrict` e executa `receber-hml.sh`, que aceita o comando `deploy-hml`. Use a chave administrativa da conta `chess` para atualizar os arquivos de configuração do deploy.
+
+## Atualizar a homologação manualmente
 
 A conta da VPS precisa de Nginx, Git, curl, Python 3 e systemd de usuário. Instale Temurin 25 em `~/chess-deploy/runtime/java25` e Node.js 24 em `~/chess-deploy/runtime/node24`. Use `loginctl enable-linger chess` para iniciar os serviços no boot e mantê-los ativos após o fim da sessão SSH.
 

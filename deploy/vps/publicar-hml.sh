@@ -62,17 +62,22 @@ exportar chess-frontend "$frontend_commit" "$build/frontend"
 )
 (
     cd "$build/frontend"
-    # A versão atual de hml aponta para o backend na máquina do desenvolvedor.
+    # Versões anteriores usavam localhost; as atuais chamam a API pela mesma origem.
     python3 - <<'PY'
 from pathlib import Path
 
-file = Path("src/pages/Game.tsx")
-source = file.read_bytes()
+paths = [Path("src/pages/Game.tsx"), Path("src/gameCapabilities.ts")]
+sources = {path: path.read_bytes() for path in paths if path.is_file()}
 old = b"'http://localhost:8080/api/partidas'"
 new = b"'/api/partidas'"
-if source.count(old) == 1:
-    file.write_bytes(source.replace(old, new))
-elif source.count(new) != 1:
+legacy = sum(source.count(old) for source in sources.values())
+relative = sum(source.count(new) for source in sources.values())
+
+if legacy == 1 and relative == 0:
+    for path, source in sources.items():
+        if old in source:
+            path.write_bytes(source.replace(old, new))
+elif (legacy, relative) != (0, 1):
     raise SystemExit("Confira o endereço da API antes de publicar este commit.")
 PY
     npm ci

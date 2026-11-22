@@ -49,7 +49,7 @@ O PostgreSQL 16 roda na conta `chess` e aceita conexões apenas na interface loc
 
 Para preparar a instância em uma VPS Ubuntu 24.04 x86_64, copie os arquivos de deploy e rode `bash ~/chess-deploy/config/preparar-postgres.sh` na VPS. O script extrai os pacotes oficiais para a pasta do projeto, cria o banco, configura o serviço de usuário e agenda o backup diário. Ele deixa as credenciais em `~/chess-deploy/postgres/backend.env`. Depois de publicar um backend com o perfil PostgreSQL, mova esse arquivo para `~/chess-deploy/backend.env` e reinicie `chess-backend.service`.
 
-Os backups ficam em `~/chess-deploy/postgres/backups`. Para gerar um backup avulso, rode `systemctl --user start chess-postgres-backup.service`. Os pacotes instalados no diretório do projeto precisam ser atualizados pelo responsável pela VPS. Contas e avatares usam PostgreSQL. As partidas desta versão continuam em memória.
+Os backups ficam em `~/chess-deploy/postgres/backups`. Para gerar um backup avulso, rode `systemctl --user start chess-postgres-backup.service`. Os pacotes instalados no diretório do projeto precisam ser atualizados pelo responsável pela VPS. Contas e avatares usam PostgreSQL. Na revisão com persistência, o perfil também armazena partidas, lances, relógio e sessões. A inicialização é aditiva. Partidas iniciadas na revisão que usa memória não sobrevivem à primeira troca de processo.
 
 ## Produção
 
@@ -58,6 +58,16 @@ O deploy de `prd` tem chave, serviços e banco próprios. A aplicação de produ
 A VPS só inicia o deploy quando os commits mínimos de backend e frontend em [prd-minimo.txt](../../deploy/vps/prd-minimo.txt) estiverem no histórico de `prd` dos dois repositórios. Essa primeira promoção está em [backend #52](https://github.com/ES2-Chess-Game/chess-backend/pull/52) e [frontend #17](https://github.com/ES2-Chess-Game/chess-frontend/pull/17). Depois dos merges, o GitHub Actions usa o ambiente `producao` e chama `deploy-prd` após o build.
 
 Para preparar o banco da produção, rode `bash ~/chess-deploy/config/preparar-postgres.sh prd` na VPS. O timer diário gera um arquivo de backup para cada banco. A produção começa com um banco próprio e vazio; o backend cadastra os avatares no primeiro boot.
+
+## Promoção da interface e da persistência
+
+1. Publique em `hml` primeiro e confira a revisão ativa pelo log de deploy.
+2. Na sequência de `prd`, promova [níveis e lances legais](https://github.com/ES2-Chess-Game/chess-backend/pull/57) antes da [interface](https://github.com/ES2-Chess-Game/chess-frontend/pull/20).
+3. A [persistência](https://github.com/ES2-Chess-Game/chess-backend/pull/59) depende da API de níveis. A [interface de retomada e histórico](https://github.com/ES2-Chess-Game/chess-frontend/pull/22) depende da persistência e da interface inicial.
+4. Após aceitar cada PR pai, aponte o filho para `prd` e rode as verificações nessa base. Use a integração de homologação para testar o conjunto. Mantenha as branches de promoção derivadas de `prd`.
+5. Na Hostinger, prepare a revisão no namespace do xadrez e confira a ativação pelo GitHub Actions. Use o banco de produção do aplicativo e o Secret já configurado no deployment.
+
+Em homologação, crie uma partida de teste, faça um lance e confirme que a opção **Retomar partida** restaura o tabuleiro e o relógio. Depois do redeploy da API, retome usando a mesma sessão e confirme que o lance ainda aparece. Encerre a partida e abra o detalhe no histórico. Uma sessão nova deve ter um histórico próprio.
 
 ## Endereço público
 

@@ -62,10 +62,10 @@ Para preparar o banco da produção, rode `bash ~/chess-deploy/config/preparar-p
 ## Promoção da interface e da persistência
 
 1. Publique em `hml` primeiro e confira a revisão ativa pelo log de deploy.
-2. Na sequência de `prd`, promova [níveis e lances legais](https://github.com/ES2-Chess-Game/chess-backend/pull/57) antes da [interface](https://github.com/ES2-Chess-Game/chess-frontend/pull/20).
-3. A [persistência](https://github.com/ES2-Chess-Game/chess-backend/pull/59) depende da API de níveis. A [interface de retomada e histórico](https://github.com/ES2-Chess-Game/chess-frontend/pull/22) depende da persistência e da interface inicial.
-4. Após aceitar cada PR pai, aponte o filho para `prd` e rode as verificações nessa base. Use a integração de homologação para testar o conjunto. Mantenha as branches de promoção derivadas de `prd`.
-5. Na Hostinger, prepare a revisão no namespace do xadrez e confira a ativação pelo GitHub Actions. Use o banco de produção do aplicativo e o Secret já configurado no deployment.
+2. A [API de níveis e lances legais](https://github.com/ES2-Chess-Game/chess-backend/pull/57) já está em `prd`.
+3. Promova a [persistência e os testes do backend](https://github.com/ES2-Chess-Game/chess-backend/pull/59). Confira o rollout e a API antes de seguir.
+4. Reexecute o CI do [frontend completo](https://github.com/ES2-Chess-Game/chess-frontend/pull/20) com o backend de `prd`. Esse PR reúne interface, retomada e histórico.
+5. Na Hostinger, prepare cada revisão no namespace do xadrez antes do merge correspondente. Confira a ativação pelo GitHub Actions e use o banco e o Secret já configurados pelo deployment.
 
 Em homologação, crie uma partida de teste, faça um lance e confirme que a opção **Retomar partida** restaura o tabuleiro e o relógio. Depois do redeploy da API, retome usando a mesma sessão e confirme que o lance ainda aparece. Encerre a partida e abra o detalhe no histórico. Uma sessão nova deve ter um histórico próprio.
 
